@@ -31,6 +31,7 @@ void fatal(char *s, ...);
 #define	ABOVE	010
 #define	BELOW	020
 #define	SPREAD	040
+#define	ALIGNED	0100
 
 #define	SCALE	1.0	/* default scale: units/inch */
 #define	WID	0.75	/* default width for boxes and ellipses */

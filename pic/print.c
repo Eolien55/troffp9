@@ -219,16 +219,38 @@ void dotbox(double x0, double y0, double x1, double y1, int ddtype, double ddval
 void dotext(obj *p, char *col)	/* print text strings of p in proper vertical spacing */
 {
 	int i, nhalf;
+	double angle = 0.0, ox, oy, dx, dy;
 	void label(char *, int, int);
 
 	nhalf = p->o_nt2 - p->o_nt1 - 1;
+	ox = p->o_x;
+	oy = p->o_y;
+
 	for (i = p->o_nt1; i < p->o_nt2; i++) {
+		if(text[i].t_type & ALIGNED) {
+			switch (p->o_type) {
+			case ARC:
+				break;
+			case LINE:
+			case ARROW:
+			case SPLINE:
+				dx = p->o_val[0] - ox;
+				dy = p->o_val[1] - oy;
+				angle = 90-atan2(dx,dy)*180/M_PI;
+				break;
+			}
+		} else
+			angle = 0.0;
 		hvflush();
+		if (angle != 0.0)
+			printf("\\X'rotate %.3f'", angle);
 		if (col != NULL)
 			printf("\\m[%s]", col);
 		label(text[i].t_val, text[i].t_type, nhalf);
 		if (col != NULL)
 			printf("\\m[]");
+		if (angle != 0.0)
+			printf("\\X'rotate 0'\\c\n");
 		nhalf -= 2;
 	}
 }

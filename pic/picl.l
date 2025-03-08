@@ -158,6 +158,7 @@ WS	[ \t]
 <A>above	{ yylval.i = ABOVE; return TEXTATTR; }
 <A>below	{ yylval.i = BELOW; return TEXTATTR; }
 <A>center	{ yylval.i = CENTER; return TEXTATTR; }
+<A>aligned	{ yylval.i = ALIGNED; return TEXTATTR; }
 
 <A>"<-"		{ yylval.i = HEAD1; return(HEAD); }
 <A>"->"		{ yylval.i = HEAD2; return(HEAD); }
