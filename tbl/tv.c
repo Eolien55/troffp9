@@ -14,8 +14,8 @@ drawvert(int start, int end, int c, int lwid)
 		end++;
 	for (ln = 0; ln < lwid; ln++) {
 		epb = ept = 0;
-		pos = -ln - lwid + 1;
-		if (pos != tp) 
+		pos = 2*ln - lwid+1;
+		if (pos != tp)
 			fprintf(tabout, "\\h'%dp'", pos - tp);
 		tp = pos;
 		if (end < nlin) {
