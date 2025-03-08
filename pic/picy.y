@@ -321,7 +321,7 @@ expr:
 	| COS '(' expr ')'		{ $$ = cos($3); }
 	| ATAN2 '(' expr ',' expr ')'	{ $$ = atan2($3, $5); }
 	| SQRT '(' expr ')'		{ $$ = Sqrt($3); }
-	| RAND '(' ')'			{ $$ = (float)rand() / 32767.0; /* might be 2^31-1 */ }
+	| RAND '(' ')'			{ $$ = (float)random() / RAND_MAX; }
 	| MAX '(' expr ',' expr ')'	{ $$ = $3 >= $5 ? $3 : $5; }
 	| MIN '(' expr ',' expr ')'	{ $$ = $3 <= $5 ? $3 : $5; }
 	| INT '(' expr ')'		{ $$ = (long) $3; }

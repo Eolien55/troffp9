@@ -222,14 +222,14 @@ void getdata(void)
 				if (sscanf(&buf[4],"%lf %lf", &deltx, &delty) < 2)
 					delty = deltx * (ymax-ymin) / (xmax-xmin);
 				/* else {
-				/*	double xfac, yfac; */
-				/*	xfac = deltx / (xmax-xmin);
-				/*	yfac = delty / (ymax-ymin);
-				/*	if (xfac <= yfac)
-				/*		delty = xfac * (ymax-ymin);
-				/*	else
-				/*		deltx = yfac * (xmax-xmin);
-				/*}
+				*	double xfac, yfac;
+				*	xfac = deltx / (xmax-xmin);
+				*	yfac = delty / (ymax-ymin);
+				*	if (xfac <= yfac)
+				*		delty = xfac * (ymax-ymin);
+				*	else
+				*		deltx = yfac * (xmax-xmin);
+				*}
 				*/
 			}
 			dprintf("deltx = %g, delty = %g\n", deltx, delty);

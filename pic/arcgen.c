@@ -210,7 +210,7 @@ void arc_extreme(double x0, double y0, double x1, double y1, double xc, double y
 	extreme(xmax, ymax);
 }
 
-quadrant(double x, double y)
+int quadrant(double x, double y)
 {
 	if (     x>=0.0 && y> 0.0) return(1);
 	else if( x< 0.0 && y>=0.0) return(2);

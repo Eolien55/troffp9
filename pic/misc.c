@@ -10,7 +10,7 @@ int whatpos(obj *p, int corner, double *px, double *py);
 void makeattr(int type, int sub, YYSTYPE val);
 YYSTYPE getblk(obj *, char *);
 
-setdir(int n)	/* set direction (hvmode) from LEFT, RIGHT, etc. */
+int setdir(int n)	/* set direction (hvmode) from LEFT, RIGHT, etc. */
 {
 	switch (n) {
 	case UP:	hvmode = U_DIR; break;
@@ -21,7 +21,7 @@ setdir(int n)	/* set direction (hvmode) from LEFT, RIGHT, etc. */
  	return(hvmode);
 }
 
-curdir(void)	/* convert current dir (hvmode) to RIGHT, LEFT, etc. */
+int curdir(void)	/* convert current dir (hvmode) to RIGHT, LEFT, etc. */
 {
 	switch (hvmode) {
 	case R_DIR:	return RIGHT;
@@ -104,6 +104,13 @@ void makefattr(int type, int sub, double f)	/* double attr */
 	YYSTYPE val;
 	val.f = f;
 	makeattr(type, sub, val);
+}
+
+void makesattr(int type, char *p)	/* int64 attr */
+{
+	YYSTYPE val;
+	val.p = p;
+	makeattr(type, 0, val);
 }
 
 void makeoattr(int type, obj *o)	/* obj* attr */
@@ -210,7 +217,7 @@ int whatpos(obj *p, int corner, double *px, double *py)	/* what is the position 
 
 	if (p == NULL)
 		fatal("null object");
-	dprintf("whatpos %o %d %d\n", p, p->o_type, corner);
+	dprintf("whatpos %p %d %d\n", p, p->o_type, corner);
 	x = p->o_x;
 	y = p->o_y;
 	if (p->o_type != PLACE && p->o_type != MOVE) {

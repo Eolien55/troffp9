@@ -1,3 +1,5 @@
+%option noyywrap
+%option nounput
 %Start A str def sc br thru sh
 %e 1700
 %k 120
@@ -7,13 +9,22 @@
 %n 700
 
 %{
-#undef	input
-#undef	unput
 /* #include <stdio.h> lex puts one out for us */
 #include <ctype.h>
 #include <stdlib.h>
 #include "pic.h"
 #include "y.tab.h"
+
+#ifdef	FLEX_SCANNER
+#undef	YY_INPUT
+#define	YY_INPUT(buf, result, max_size) { \
+	int	c = xxinput(); \
+	result = (c == EOF || c == 0) ? YY_NULL : (buf[0] = c, 1); \
+}
+#define	witchcraft	YY_START
+#else	/* !FLEX_SCANNER */
+#define	witchcraft	yybgin-yysvec-1
+#endif	/* !FLEX_SCANNER */
 
 extern	char	*filename;
 extern	struct	symtab	symtab[];
@@ -26,10 +37,9 @@ void	endfor(void);
 
 int	yyback(int *, int);
 int	yylook(void);
-int	yywrap(void);
 
 #define	CADD	cbuf[clen++]=yytext[0]; \
-		if (clen>=CBUFLEN-1) { ERROR "string too long", cbuf WARNING; BEGIN A; }
+		if (clen>=CBUFLEN-1) { error("string too long", cbuf); BEGIN A; }
 #define	CBUFLEN	500
 char	cbuf[CBUFLEN];
 int	c, clen, cflag, delim;
@@ -42,7 +52,7 @@ D	[0-9]
 WS	[ \t]
 
 %%
-	switch (yybgin-yysvec-1) {	/* witchcraft */
+	switch (witchcraft) {	/* witchcraft */
 	case 0:
 		BEGIN A;
 		break;
@@ -62,7 +72,7 @@ WS	[ \t]
 <A>"]"		{ BEGIN br; return(ST); }
 <A>"{"{WS}*(#.*)?\n+	{ return(yylval.i = yytext[0]); }
 
-<A>^".PS".*	{ if (curfile == infile) ERROR ".PS found inside .PS/.PE" WARNING; }
+<A>^".PS".*	{ if (curfile == infile) error(".PS found inside .PS/.PE"); }
 <A>^".PE".*	{ if (curfile == infile) {
 			yylval.p = PEstring = tostring(yytext);
 			return(EOF);
@@ -107,17 +117,17 @@ WS	[ \t]
 <A>".nw"		{ yylval.i = NW; return(CORNER); }
 <A>".sw"		{ yylval.i = SW; return(CORNER); }
 
-<A>top" "+of		{ yylval.i = NORTH; return(CORNER); }
-<A>north" "+of		{ yylval.i = NORTH; return(CORNER); }
-<A>bottom" "+of		{ yylval.i = SOUTH; return(CORNER); }
-<A>south" "+of		{ yylval.i = SOUTH; return(CORNER); }
-<A>left" "+of		{ yylval.i = WEST; return(CORNER); }
-<A>west" "+of		{ yylval.i = WEST; return(CORNER); }
-<A>right" "+of		{ yylval.i = EAST; return(CORNER); }
-<A>east" "+of		{ yylval.i = EAST; return(CORNER); }
-<A>center" "+of		{ yylval.i = CENTER; return(CORNER); }
-<A>start" "+of		{ yylval.i = START; return(CORNER); }
-<A>end" "+of		{ yylval.i = END; return(CORNER); }
+<A>top{WS}+of		{ yylval.i = NORTH; return(CORNER); }
+<A>north{WS}+of		{ yylval.i = NORTH; return(CORNER); }
+<A>bottom{WS}+of	{ yylval.i = SOUTH; return(CORNER); }
+<A>south{WS}+of		{ yylval.i = SOUTH; return(CORNER); }
+<A>left{WS}+of		{ yylval.i = WEST; return(CORNER); }
+<A>west{WS}+of		{ yylval.i = WEST; return(CORNER); }
+<A>right{WS}+of		{ yylval.i = EAST; return(CORNER); }
+<A>east{WS}+of		{ yylval.i = EAST; return(CORNER); }
+<A>center{WS}+of	{ yylval.i = CENTER; return(CORNER); }
+<A>start{WS}+of		{ yylval.i = START; return(CORNER); }
+<A>end{WS}+of		{ yylval.i = END; return(CORNER); }
 
 <A>height|ht	{ yylval.i = HEIGHT; return(ATTR); }
 <A>width|wid	{ yylval.i = WIDTH; return(ATTR); }
@@ -162,6 +172,7 @@ WS	[ \t]
 <A>by		return(yylval.i = BY);
 <A>with		return(yylval.i = WITH);
 <A>last		return(yylval.i = LAST);
+<A>previous	return(yylval.i = LAST);
 
 <A>log		return(LOG);
 <A>exp		return(EXP);
@@ -212,7 +223,7 @@ WS	[ \t]
 			p = lookup(yytext);
 			if (p != NULL && p->s_type == DEFNAME) {
 				c = input();
-				unput(c);
+				xxunput(c);
 				if (c == '(')
 					dodef(p);
 				else
@@ -241,7 +252,7 @@ WS	[ \t]
 		p = lookup(yytext);
 		if (p != NULL && p->s_type == DEFNAME) {
 			c = input();
-			unput(c);
+			xxunput(c);
 			if (c == '(')	/* it's name(...) */
 				dodef(p);
 			else {	/* no argument list */
@@ -259,7 +270,7 @@ WS	[ \t]
 
 <A>\"		{ BEGIN str; clen=0; }
 <str>\"		{ cbuf[clen]=0; yylval.p = tostring(cbuf); BEGIN A; return(TEXT); }
-<str>\n		{ cbuf[clen]=0; ERROR "missing quote in string \"%s\"", cbuf WARNING;
+<str>\n		{ cbuf[clen]=0; error("missing quote in string \"%s\"", cbuf);
 				BEGIN A; return(ST); }
 <str>"\\\""	{ cbuf[clen++]='"'; }
 <str>"\\"t	{ cbuf[clen++]='\t'; }

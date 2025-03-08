@@ -33,7 +33,7 @@ void forloop(char *var, double from, double to, int op,
 	forp->str = str;
 	setfval(var, from);
 	nextfor();
-	unput('\n');
+	xxunput('\n');
 }
 
 void nextfor(void)	/* do one iteration of a for loop */
@@ -75,20 +75,20 @@ char *ifstat(double expr, char *thenpart, char *elsepart)
 {
 	dprintf("if %g then <%s> else <%s>\n", expr, thenpart, elsepart? elsepart : "");
 	if (expr) {
-		unput('\n');
+		xxunput('\n');
 		pushsrc(Free, thenpart);
 		pushsrc(String, thenpart);
-		unput('\n');
+		xxunput('\n');
   		if (elsepart)
 			free(elsepart);
 		return thenpart;	/* to be freed later */
 	} else {
 		free(thenpart);
 		if (elsepart) {
-			unput('\n');
+			xxunput('\n');
 			pushsrc(Free, elsepart);
 			pushsrc(String, elsepart);
-			unput('\n');
+			xxunput('\n');
 		}
 		return elsepart;
 	}

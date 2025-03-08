@@ -165,8 +165,8 @@ void	copyfile(char *);
 void	copydef(struct symtab *);
 void	definition(char *);
 struct symtab *copythru(char *);
-int	input(void);
-int	unput(int);
+int	xxinput(void);
+int	xxunput(int);
 void	extreme(double, double);
 
 extern	double	deltx, delty;

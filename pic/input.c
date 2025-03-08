@@ -26,7 +26,7 @@ void pushsrc(int type, char *ptr)	/* new input source */
 	srcp->type = type;
 	srcp->sp = ptr;
 	if (dbg > 1) {
-		printf("\n%3d ", srcp - src);
+		printf("\n%3ld ", srcp - src);
 		switch (srcp->type) {
 		case File:
 			printf("push file %s\n", ((Infile *)ptr)->fname);
@@ -57,7 +57,7 @@ void popsrc(void)	/* restore an old one */
 	if (srcp <= src)
 		fatal("too many inputs popped");
 	if (dbg > 1) {
-		printf("%3d ", srcp - src);
+		printf("%3ld ", srcp - src);
 		switch (srcp->type) {
 		case File:
 			printf("pop file\n");
@@ -117,12 +117,12 @@ char *delimstr(char *s)	/* get body of X ... X */
 
 	if (buf == NULL)
 		buf = grow(buf, "buf", nbuf += 1000, sizeof(buf[0]));
-	while ((delim = input()) == ' ' || delim == '\t' || delim == '\n')
+	while ((delim = xxinput()) == ' ' || delim == '\t' || delim == '\n')
 		;
 	rdelim = baldelim(delim, "{}");		/* could be "(){}[]`'" */
 	deep = 1;
 	for (p = buf; ; ) {
-		c = input();
+		c = xxinput();
 		if (c == rdelim)
 			if (--deep == 0)
 				break;
@@ -142,7 +142,7 @@ char *delimstr(char *s)	/* get body of X ... X */
 	return tostring(buf);
 }
 
-baldelim(int c, char *s)	/* replace c by balancing entry in s */
+int baldelim(int c, char *s)	/* replace c by balancing entry in s */
 {
 	for ( ; *s; s += 2)
 		if (*s == c)
@@ -174,31 +174,31 @@ void dodef(struct symtab *stp)	/* collect args and switch input to defn */
 	if (ap >= args+10)
 		fatal("arguments too deep");
 	argcnt = 0;
-	if (input() != '(')
+	if (xxinput() != '(')
 		fatal("disaster in dodef");
 	if (ap->argval == 0)
 		ap->argval = malloc(1000);
 	for (p = ap->argval; (len = getarg(p)) != -1; p += len) {
 		ap->argstk[argcnt++] = p;
-		if (input() == ')')
+		if (xxinput() == ')')
 			break;
 	}
 	for (i = argcnt; i < MAXARGS; i++)
 		ap->argstk[i] = "";
 	if (dbg)
 		for (i = 0; i < argcnt; i++)
-			printf("arg %d.%d = <%s>\n", ap-args, i+1, ap->argstk[i]);
+			printf("arg %ld.%d = <%s>\n", ap-args, i+1, ap->argstk[i]);
 	argfp = ap;
 	pushsrc(Macro, stp->s_val.p);
 }
 
-getarg(char *p)	/* pick up single argument, store in p, return length */
+int getarg(char *p)	/* pick up single argument, store in p, return length */
 {
 	int n, c, npar;
 
 	n = npar = 0;
 	for ( ;; ) {
-		c = input();
+		c = xxinput();
 		if (c == EOF)
 			fatal("end of file in getarg");
 		if (npar == 0 && (c == ',' || c == ')'))
@@ -207,7 +207,7 @@ getarg(char *p)	/* pick up single argument, store in p, return length */
 			do {
 				*p++ = c;
 				n++;
-			} while ((c = input()) != '"' && c != EOF);
+			} while ((c = xxinput()) != '"' && c != EOF);
 		else if (c == '(')
 			npar++;
 		else if (c == ')')
@@ -216,7 +216,7 @@ getarg(char *p)	/* pick up single argument, store in p, return length */
 		*p++ = c;
 	}
 	*p = 0;
-	unput(c);
+	xxunput(c);
 	return(n + 1);
 }
 
@@ -232,7 +232,7 @@ extern	int	thru;
 extern	struct symtab	*thrudef;
 extern	char	*untilstr;
 
-input(void)
+int xxinput(void)
 {
 	register int c;
 
@@ -248,7 +248,7 @@ input(void)
 	return *(unsigned char *)ep++ = c;
 }
 
-nextchar(void)
+int nextchar(void)
 {
 	register int c;
 
@@ -340,7 +340,7 @@ void do_thru(void)	/* read one line, make into a macro expansion */
 	argcnt = 0;
 	c = nextchar();
 	if (thru == 0) {	/* end of file was seen, so thru is done */
-		unput(c);
+		xxunput(c);
 		return;
 	}
 	for ( ; c != '\n' && c != EOF; ) {
@@ -380,7 +380,7 @@ void do_thru(void)	/* read one line, make into a macro expansion */
 		ap->argstk[i] = "";
 	if (dbg)
 		for (i = 0; i < argcnt; i++)
-			printf("arg %d.%d = <%s>\n", ap-args, i+1, ap->argstk[i]);
+			printf("arg %ld.%d = <%s>\n", ap-args, i+1, ap->argstk[i]);
 	if (strcmp(ap->argstk[0], ".PE") == 0) {
 		thru = 0;
 		thrudef = 0;
@@ -400,7 +400,7 @@ void do_thru(void)	/* read one line, make into a macro expansion */
 	pushsrc(Macro, thrudef->s_val.p);
 }
 
-unput(int c)
+int xxunput(int c)
 {
 	if (++pb >= pbuf + sizeof pbuf)
 		fatal("pushback overflow");
@@ -481,8 +481,6 @@ void eprint(void)	/* try to print context around error */
 	pbstr("\n.PE\n");	/* safety first */
 	ep = ebuf;
 }
-
-void yywrap(void) {}
 
 char	*newfile = 0;		/* filename for file copy */
 char	*untilstr = 0;		/* string that terminates a thru */
@@ -580,7 +578,7 @@ void shell_init(void)	/* set up to interpret a shell command */
 
 void shell_text(char *s)	/* add string to command being collected */
 {
-	while (*shellp++ = *s++)
+	while ((*shellp++ = *s++))
 		;
 	shellp--;
 }

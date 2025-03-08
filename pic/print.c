@@ -18,6 +18,8 @@ void move(double, double);
 void troff(char *);
 void dot(void);
 
+int hvflush(void);
+
 void print(void)
 {
 	obj *p;
@@ -88,7 +90,7 @@ void print(void)
 			if (ishor(m))
 				move(ox + isright(m) ? x1 : -x1, oy);
 			else
-				move(ox, oy - isdown(m) ? y1 : -y1);
+				move(ox, (oy - isdown(m)) ? y1 : -y1);
 			break;
 		case ARC:
 			if (p->o_attr & HEAD1)
