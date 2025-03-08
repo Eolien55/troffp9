@@ -20,6 +20,7 @@ obj *arcgen(int type)	/* handles circular and (eventually) elliptical arcs */
 	int i, head, to, at, cw, invis, ddtype, battr;
 	obj *p, *ppos;
 	double fromx, fromy, tox, toy, fillval = 0;
+	char *bgrgb = NULL, *fgrgb = NULL;
 	Attr *ap;
 
 	prevrad = getfval("arcrad");
@@ -91,6 +92,16 @@ obj *arcgen(int type)	/* handles circular and (eventually) elliptical arcs */
 			else
 				fillval = ap->a_val.f;
 			break;
+		case SHADED:
+			battr |= FILLBIT;
+			if (ap->a_val.p != NULL)
+				bgrgb = ap->a_val.p;
+			else
+				fillval = getfval("fillval");
+			break;
+		case OUTLINE:
+			fgrgb = ap->a_val.p;
+			break;
 		}
 	}
 	if (!at && !to) {	/* the defaults are mostly OK */
@@ -147,6 +158,8 @@ obj *arcgen(int type)	/* handles circular and (eventually) elliptical arcs */
 	p->o_val[6] = prevrad;
 	p->o_attr = head | (cw ? CW_ARC : 0) | invis | ddtype | battr;
 	p->o_fillval = fillval;
+	p->o_bgrgb = bgrgb;
+	p->o_fgrgb = fgrgb;
 	if (head)
 		p->o_nhead = getfval("arrowhead");
 	dprintf("arc rad %g at %g %g from %g %g to %g %g head %g %g\n",

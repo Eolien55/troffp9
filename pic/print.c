@@ -3,17 +3,17 @@
 #include "pic.h"
 #include "y.tab.h"
 
-void dotext(obj *);
-void dotline(double, double, double, double, int, double);
-void dotbox(double, double, double, double, int, double);
-void ellipse(double, double, double, double, int, double);
-void circle(double, double, double, int, double);
-void arc(double, double, double, double, double, double, int, double);
-void arrow(double, double, double, double, double, double, double, int);
-void line(double, double, double, double);
-void box(double, double, double, double, int, double);
-void spline(double x, double y, double n, ofloat *p, int dashed, double ddval, int fill, double fillval);
-void muline(double x, double y, double n, ofloat *p, int fill, double fillval);
+void dotext(obj *, char*);
+void dotline(double, double, double, double, int, double, char*);
+void dotbox(double, double, double, double, int, double, char*);
+void ellipse(double, double, double, double, int, double, char*);
+void circle(double, double, double, int, double, char*);
+void arc(double, double, double, double, double, double, int, double, char*);
+void arrow(double, double, double, double, double, double, double, int, char*);
+void line(double, double, double, double, char*);
+void box(double, double, double, double, int, double, char*);
+void spline(double, double, double, ofloat *, int, double, int, double, char*);
+void muline(double, double, double, ofloat *, int, double, char*);
 void move(double, double);
 void troff(char *);
 void dot(void);
@@ -50,17 +50,17 @@ void print(void)
 			x1 = ox + x1 / 2;
 			y1 = oy + y1 / 2;
 			if (fill)
-				box(x0, y0, x1, y1, 1, p->o_fillval);
+				box(x0, y0, x1, y1, 1, p->o_fillval, p->o_bgrgb);
 			if (p->o_type == BLOCK)
 				;	/* nothing at all */
 			else if (invis && !fill)
 				;	/* nothing at all */
 			else if (p->o_attr & (DOTBIT|DASHBIT))
-				dotbox(x0, y0, x1, y1, p->o_attr, p->o_ddval);
-			else
-				box(x0, y0, x1, y1, 0, 0);
+				dotbox(x0, y0, x1, y1, p->o_attr, p->o_ddval, p->o_fgrgb);
+			else if (vis)
+				box(x0, y0, x1, y1, 0, 0, p->o_fgrgb);
 			move(ox, oy);
-			dotext(p);	/* if there are any text strings */
+			dotext(p, p->o_fgrgb);	/* if there are any text strings */
 			if (ishor(m))
 				move(isright(m) ? x1 : x0, oy);	/* right side */
 			else
@@ -70,11 +70,11 @@ void print(void)
 			break;
 		case CIRCLE:
 			if (fill)
-				circle(ox, oy, x1, 1, p->o_fillval);
+				circle(ox, oy, x1, 1, p->o_fillval, p->o_bgrgb);
 			if (vis)
-				circle(ox, oy, x1, 0, 0);
+				circle(ox, oy, x1, 0, 0, p->o_fgrgb);
 			move(ox, oy);
-			dotext(p);
+			dotext(p, p->o_fgrgb);
 			if (ishor(m))
 				move(ox + isright(m) ? x1 : -x1, oy);
 			else
@@ -82,11 +82,11 @@ void print(void)
 			break;
 		case ELLIPSE:
 			if (fill)
-				ellipse(ox, oy, x1, y1, 1, p->o_fillval);
+				ellipse(ox, oy, x1, y1, 1, p->o_fillval, p->o_bgrgb);
 			if (vis)
-				ellipse(ox, oy, x1, y1, 0, 0);
+				ellipse(ox, oy, x1, y1, 0, 0, p->o_fgrgb);
 			move(ox, oy);
-			dotext(p);
+			dotext(p, p->o_fgrgb);
 			if (ishor(m))
 				move(ox + isright(m) ? x1 : -x1, oy);
 			else
@@ -95,48 +95,48 @@ void print(void)
 		case ARC:
 			if (p->o_attr & HEAD1)
 				arrow(x1 - (y1 - oy), y1 + (x1 - ox),
-				      x1, y1, p->o_val[4], p->o_val[5], p->o_val[5]/p->o_val[6]/2, p->o_nhead);
+				      x1, y1, p->o_val[4], p->o_val[5], p->o_val[5]/p->o_val[6]/2, p->o_nhead, p->o_fgrgb);
                         if (fill)
-				arc(ox, oy, x1, y1, p->o_val[2], p->o_val[3], 1, p->o_fillval);
+				arc(ox, oy, x1, y1, p->o_val[2], p->o_val[3], 1, p->o_fillval, p->o_bgrgb);
                         if (invis && !fill)
                                 /* probably wrong when it's cw */
                                 move(x1, y1);
                         else if (vis)
-				arc(ox, oy, x1, y1, p->o_val[2], p->o_val[3], 0, 0);
+				arc(ox, oy, x1, y1, p->o_val[2], p->o_val[3], 0, 0, p->o_fgrgb);
 			if (p->o_attr & HEAD2)
 				arrow(p->o_val[2] + p->o_val[3] - oy, p->o_val[3] - (p->o_val[2] - ox),
-				      p->o_val[2], p->o_val[3], p->o_val[4], p->o_val[5], -p->o_val[5]/p->o_val[6]/2, p->o_nhead);
+				      p->o_val[2], p->o_val[3], p->o_val[4], p->o_val[5], -p->o_val[5]/p->o_val[6]/2, p->o_nhead, p->o_fgrgb);
 			if (p->o_attr & CW_ARC)
 				move(x1, y1);	/* because drawn backwards */
 			move(ox, oy);
-			dotext(p);
+			dotext(p, p->o_fgrgb);
 			break;
 		case LINE:
 		case ARROW:
 		case SPLINE:
 			if (vis && p->o_attr & HEAD1)
-				arrow(ox + p->o_val[5], oy + p->o_val[6], ox, oy, p->o_val[2], p->o_val[3], 0.0, p->o_nhead);
+				arrow(ox + p->o_val[5], oy + p->o_val[6], ox, oy, p->o_val[2], p->o_val[3], 0.0, p->o_nhead, p->o_fgrgb);
                         if (invis && !fill)
                                 move(x1, y1);
 			else if (p->o_type == SPLINE) {
 				if (fill)
 					spline(ox, oy, p->o_val[4], &p->o_val[5],
-						p->o_attr & (DOTBIT|DASHBIT), p->o_ddval, 1, p->o_fillval);
+						p->o_attr & (DOTBIT|DASHBIT), p->o_ddval, 1, p->o_fillval, p->o_bgrgb);
 				if (vis)
 					spline(ox, oy, p->o_val[4], &p->o_val[5],
-						p->o_attr & (DOTBIT|DASHBIT), p->o_ddval, 0, 0);
+						p->o_attr & (DOTBIT|DASHBIT), p->o_ddval, 0, 0, p->o_fgrgb);
 			} else {
 				if (fill)
-					muline(ox, oy, p->o_val[4], &p->o_val[5], 1, p->o_fillval);
+					muline(ox, oy, p->o_val[4], &p->o_val[5], 1, p->o_fillval, p->o_bgrgb);
 				dx = ox;
 				dy = oy;
 				for (k=0, j=5; k < p->o_val[4]; k++, j += 2) {
 					ndx = dx + p->o_val[j];
 					ndy = dy + p->o_val[j+1];
-					if (p->o_attr & (DOTBIT|DASHBIT))
-						dotline(dx, dy, ndx, ndy, p->o_attr, p->o_ddval);
-					else
-						line(dx, dy, ndx, ndy);
+					if (vis && p->o_attr & (DOTBIT|DASHBIT))
+						dotline(dx, dy, ndx, ndy, p->o_attr, p->o_ddval, p->o_fgrgb);
+					else if (vis)
+						line(dx, dy, ndx, ndy, p->o_fgrgb);
 					dx = ndx;
 					dy = ndy;
 				}
@@ -148,10 +148,10 @@ void print(void)
 					dx += p->o_val[j];
 					dy += p->o_val[j+1];
 				}
-				arrow(dx, dy, x1, y1, p->o_val[2], p->o_val[3], 0.0, p->o_nhead);
+				arrow(dx, dy, x1, y1, p->o_val[2], p->o_val[3], 0.0, p->o_nhead, p->o_fgrgb);
 			}
 			move((ox + x1)/2, (oy + y1)/2);	/* center */
-			dotext(p);
+			dotext(p, p->o_fgrgb);
 			break;
 		case MOVE:
 			move(ox, oy);
@@ -159,13 +159,13 @@ void print(void)
 		case TEXT:
 			move(ox, oy);
                         if (vis)
-				dotext(p);
+				dotext(p, p->o_fgrgb);
 			break;
 		}
 	}
 }
 
-void dotline(double x0, double y0, double x1, double y1, int ddtype, double ddval) /* dotted line */
+void dotline(double x0, double y0, double x1, double y1, int ddtype, double ddval, char *col) /* dotted line */
 {
 	static double prevval = 0.05;	/* 20 per inch by default */
 	int i, numdots;
@@ -189,7 +189,7 @@ void dotline(double x0, double y0, double x1, double y1, int ddtype, double ddva
 		double d, dashsize, spacesize;
 		d = sqrt(dx*dx + dy*dy);
 		if (d <= 2 * prevval) {
-			line(x0, y0, x1, y1);
+			line(x0, y0, x1, y1, col);
 			return;
 		}
 		numdots = d / (2 * prevval) + 1;	/* ceiling */
@@ -198,32 +198,37 @@ void dotline(double x0, double y0, double x1, double y1, int ddtype, double ddva
 		for (i = 0; i < numdots-1; i++) {
 			a = i * (dashsize + spacesize) / d;
 			b = a + dashsize / d;
-			line(x0 + (a*dx), y0 + (a*dy), x0 + (b*dx), y0 + (b*dy));
+			line(x0 + (a*dx), y0 + (a*dy), x0 + (b*dx), y0 + (b*dy), col);
 			a = b;
 			b = a + spacesize / d;
 			move(x0 + (a*dx), y0 + (a*dy));
 		}
-		line(x0 + (b * dx), y0 + (b * dy), x1, y1);
+		line(x0 + (b * dx), y0 + (b * dy), x1, y1, col);
 	}
 	prevval = 0.05;
 }
 
-void dotbox(double x0, double y0, double x1, double y1, int ddtype, double ddval)	/* dotted or dashed box */
+void dotbox(double x0, double y0, double x1, double y1, int ddtype, double ddval, char *col)	/* dotted or dashed box */
 {
-	dotline(x0, y0, x1, y0, ddtype, ddval);
-	dotline(x1, y0, x1, y1, ddtype, ddval);
-	dotline(x1, y1, x0, y1, ddtype, ddval);
-	dotline(x0, y1, x0, y0, ddtype, ddval);
+	dotline(x0, y0, x1, y0, ddtype, ddval, col);
+	dotline(x1, y0, x1, y1, ddtype, ddval, col);
+	dotline(x1, y1, x0, y1, ddtype, ddval, col);
+	dotline(x0, y1, x0, y0, ddtype, ddval, col);
 }
 
-void dotext(obj *p)	/* print text strings of p in proper vertical spacing */
+void dotext(obj *p, char *col)	/* print text strings of p in proper vertical spacing */
 {
 	int i, nhalf;
 	void label(char *, int, int);
 
 	nhalf = p->o_nt2 - p->o_nt1 - 1;
 	for (i = p->o_nt1; i < p->o_nt2; i++) {
+		hvflush();
+		if (col != NULL)
+			printf("\\m[%s]", col);
 		label(text[i].t_val, text[i].t_type, nhalf);
+		if (col != NULL)
+			printf("\\m[]");
 		nhalf -= 2;
 	}
 }

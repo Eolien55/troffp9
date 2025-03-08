@@ -22,6 +22,7 @@ obj *linegen(int type)
 	double dx[500], dy[500];
 	int ndxy;
 	double nx, ny;
+	char *bgrgb = NULL, *fgrgb = NULL;
 	Attr *ap, *chop_ap[4];
 
 	nx = curx;
@@ -150,6 +151,16 @@ obj *linegen(int type)
 			else
 				fillval = ap->a_val.f;
 			break;
+		case SHADED:
+			battr |= FILLBIT;
+			if (ap->a_val.p != NULL)
+				bgrgb = ap->a_val.p;
+			else
+				fillval = getfval("fillval");
+			break;
+		case OUTLINE:
+			fgrgb = ap->a_val.p;
+			break;
 		}
 	}
 	if (with) {	/* this doesn't work at all */
@@ -214,6 +225,8 @@ obj *linegen(int type)
 	}
 	p->o_attr = head | invis | ddtype | battr;
 	p->o_fillval = fillval;
+	p->o_bgrgb = bgrgb;
+	p->o_fgrgb = fgrgb;
 	p->o_val[4] = ndxy;
 	nx = p->o_x;
 	ny = p->o_y;

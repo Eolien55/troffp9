@@ -72,6 +72,8 @@ typedef struct obj {	/* stores various things in variable length */
 	struct symtab *o_symtab; /* symtab for [...] */
 	float	o_ddval;	/* value of dot/dash expression */
 	float	o_fillval;	/* gray scale value */
+	char*   o_bgrgb;
+	char*   o_fgrgb;
 	ofloat	o_val[1];	/* actually this will be > 1 in general */
 				/* type is not always FLOAT!!!! */
 } obj;
@@ -187,6 +189,7 @@ obj	*getpos(obj *, int), *gethere(void), *getfirst(int, int);
 obj	*getlast(int, int), *getblock(obj *, char *);
 void	savetext(int, char *);
 void	makeiattr(int, int);
+void	makesattr(int, char*);
 void	makevattr(char *);
 void	makefattr(int type, int sub, double f);
 void	maketattr(int, char *);
@@ -197,6 +200,8 @@ void	printpos(obj *);
 void	exprsave(double);
 void	addtattr(int);
 void	printlf(int, char *);
+
+char *getcolor(char *);
 
 struct pushstack {
 	double	p_x;

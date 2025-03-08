@@ -9,6 +9,7 @@ obj *circgen(int type)
 	int i, at, t, with, battr;
 	double xwith, ywith;
 	double r, r2, ddval, fillval;
+	char *bgrgb = NULL, *fgrgb = NULL;
 	obj *p, *ppos;
 	Attr *ap;
 
@@ -71,6 +72,16 @@ obj *circgen(int type)
 			else
 				fillval = ap->a_val.f;
 			break;
+		case SHADED:
+			battr |= FILLBIT;
+			if (ap->a_val.p != NULL)
+				bgrgb = ap->a_val.p;
+			else
+				fillval = getfval("fillval");
+			break;
+		case OUTLINE:
+			fgrgb = ap->a_val.p;
+			break;
 		}
 	}
 	if (type == CIRCLE)
@@ -108,6 +119,8 @@ obj *circgen(int type)
 	p->o_attr = battr;
 	p->o_ddval = ddval;
 	p->o_fillval = fillval;
+	p->o_bgrgb = bgrgb;
+	p->o_fgrgb = fgrgb;
 	extreme(curx+r, cury+r2);
 	extreme(curx-r, cury-r2);
 	if (type == CIRCLE)

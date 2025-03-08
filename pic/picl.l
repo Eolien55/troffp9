@@ -144,6 +144,9 @@ WS	[ \t]
 <A>invis(ible)?	{ yylval.i = INVIS; return(ATTR); }
 <A>noedge	{ yylval.i = INVIS; return ATTR; }
 <A>fill		return(yylval.i = FILL);
+<A>shaded	return(yylval.i = SHADED);
+<A>outline	return(yylval.i = OUTLINE);
+<A>color	return(yylval.i = OUTLINE);
 <A>solid	;
 <A>dot(ted)?	return(yylval.i = DOT);
 <A>dash(ed)?	return(yylval.i = DASH);

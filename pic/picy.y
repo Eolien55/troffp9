@@ -38,6 +38,7 @@ extern	int	yylex(void);
 %token	<f>	LOG EXP SIN COS ATAN2 SQRT RAND MIN MAX INT
 %token	<i>	DIR
 %token	<i>	DOT DASH CHOP FILL NOEDGE
+%token	<i>	COLOR SHADED OUTLINE
 %token	<o>	ST	/* statement terminator */
 
 %right	<f>	'='
@@ -201,6 +202,10 @@ attr:
 	| CHOP expr		{ makefattr(CHOP, !DEFAULT, $2); }
 	| CHOP			{ makefattr(CHOP, DEFAULT, 0.0); }
 	| CHOP PLACENAME	{ makeattr(CHOP, PLACENAME, getvar($2)); }
+	| SHADED text		{ makesattr(SHADED, getcolor($2)); }
+	| OUTLINE text		{ makesattr(OUTLINE, getcolor($2)); }
+	| COLOR text		{ makesattr(OUTLINE, getcolor($2)); }
+	| FILL text		{ makesattr(SHADED, getcolor($2)); }
 	| FILL expr		{ makefattr(FILL, !DEFAULT, $2); }
 	| FILL			{ makefattr(FILL, DEFAULT, 0.0); }
 	| NOEDGE		{ makeiattr(NOEDGE, 0); }

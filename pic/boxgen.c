@@ -9,6 +9,7 @@ obj *boxgen(void)
 	int i, at, battr, with;
 	double ddval, fillval, xwith, ywith;
 	double h, w, x0, y0, x1, y1;
+	char *bgrgb = NULL, *fgrgb = NULL;
 	obj *p, *ppos;
 	Attr *ap;
 
@@ -19,6 +20,9 @@ obj *boxgen(void)
 	for (i = 0; i < nattr; i++) {
 		ap = &attr[i];
 		switch (ap->a_type) {
+		case TEXTATTR:
+			savetext(ap->a_sub, ap->a_val.p);
+			break;
 		case HEIGHT:
 			h = ap->a_val.f;
 			break;
@@ -59,8 +63,15 @@ obj *boxgen(void)
 			else
 				fillval = ap->a_val.f;
 			break;
-		case TEXTATTR:
-			savetext(ap->a_sub, ap->a_val.p);
+		case SHADED:
+			battr |= FILLBIT;
+			if (ap->a_val.p != NULL)
+				bgrgb = ap->a_val.p;
+			else
+				fillval = getfval("fillval");
+			break;
+		case OUTLINE:
+			fgrgb = ap->a_val.p;
 			break;
 		}
 	}
@@ -100,6 +111,8 @@ obj *boxgen(void)
 	p->o_attr = battr;
 	p->o_ddval = ddval;
 	p->o_fillval = fillval;
+	p->o_bgrgb = bgrgb;
+	p->o_fgrgb = fgrgb;
 	dprintf("B %g %g %g %g at %g %g, h=%g, w=%g\n", x0, y0, x1, y1, curx, cury, h, w);
 	if (isright(hvmode))
 		curx = x1;
