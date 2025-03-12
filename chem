@@ -15,7 +15,10 @@ BEGIN {
 	print ".."
 	print ".\\}"
 
-	macros = "/home/e55/data/neatroff/lib/chem.macros"	# CHANGE ME!!!!!
+	macros = ENVIRON["CHEMDIR"]
+	if (macros == "")	macros = ENVIRON["XDG_DATA_HOME"] "/chem"
+	if (macros == "/chem")	macros = ENVIRON["HOME"] "/.local/share/chem"
+	macros = macros "/chem.macros"
 
 	pi = 3.141592654
 	deg = 57.29578
