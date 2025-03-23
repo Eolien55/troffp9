@@ -78,7 +78,7 @@ $1 ~ /^[A-Z].*:$/ {	# label;  falls thru after shifting left
 	shiftfields(1)
 }
 
-$1 ~ /^\"/	{ print "Last: ", $0; last = OTHER; next }
+$1 ~ /^\\"/	{ print "Last: ", $0; last = OTHER; next }
 
 $1 ~ /bond/	{ bond($1); next }
 $1 ~ /^(double|triple|front|back)$/ && $2 == "bond" {
