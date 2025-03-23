@@ -97,8 +97,22 @@ function coldesc(s,	sum, i, a, c, _r, _g, _b) {
 	next
 }
 
-/^\.cl :/{
-	$0 = ".cl " coldesc(substr($2, 2))
+/^\.cl /{
+	$0 = ".cl " coldesc($2)
+	print
+	next
+}
+
+/^\.dc /{
+	color[$2, "r"] = parsehex(substr($3, 2, 2))
+	color[$2, "g"] = parsehex(substr($3, 4, 2))
+	color[$2, "b"] = parsehex(substr($3, 6, 2))
+}
+
+/^\.rc /{
+	delete color[$2, "r"]
+	delete color[$2, "g"]
+	delete color[$2, "b"]
 }
 
 /color/{
@@ -109,8 +123,8 @@ function coldesc(s,	sum, i, a, c, _r, _g, _b) {
 
 /\\m/ {
 	p = 1
-	while (match(substr($0, p), "\\\\\\m\\[:[^]]+\\]")) {
-		$0 = substr($0, 1, p-1+RSTART+2) coldesc(substr($0, p-1+RSTART+4, RLENGTH-5)) substr($0, p-1+RSTART+RLENGTH-1)
+	while (match(substr($0, p), "\\\\m\\[[^]]+\\]")) {
+		$0 = substr($0, 1, p-1+RSTART+2) coldesc(substr($0, p-1+RSTART+3, RLENGTH-4)) substr($0, p-1+RSTART+RLENGTH-1)
 		p = p-1+RSTART+RLENGTH
 	}
 }
