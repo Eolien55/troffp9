@@ -1,0 +1,143 @@
+#!/bin/sh
+# doctype:  synthesize proper command line for troff
+
+# if(~ $#* 0){
+	# echo 'usage: doctype [ -n ] [ -T dev ] [ file ] ...' >[1=2]
+	# exit usage
+# }
+
+troff=roff
+eqn=eqn
+prefer=prefer
+postopt=""
+opt=""
+dev=""
+shell=sh
+while [ -n "$1" ]; do
+	case "$1" in
+	-n)	troff=nroff
+		eqn=neqn
+		prefer="prefer -n"
+		;;
+	-T)	dev=-T$2
+		shift
+		;;
+	-P)
+		postopt="$postopt $2"
+		shift
+		;;
+	-p)
+		opt="$opt -dpaper=$2"
+		postopt="$postopt -p$2"
+		shift
+		;;
+	-pl)
+		opt="$opt -dpaperl=1 -dpaper=$2"
+		postopt="$postopt -p$2 -l"
+		shift
+		;;
+	-e)
+		files="$HOME/src/neatroff/lib/eqn "
+		;;
+	-s)
+		shell=$2
+		shift
+		;;
+	-*)
+		opt="$opt $1"
+		;;
+	*)
+		break
+		;;
+	esac
+	shift
+done
+files="$files$*"
+if [ -z "$files" ]; then
+	cat > /tmp/doctype.$$
+	files=/tmp/doctype.$$
+	trap 'rm "$files"' int exit
+fi
+cat $files | grep -e '^\.' |
+grep -Eh '^\.(lib (color|eqn)$|font|lang|so|EQ|TS|\[|TPS|PS|IS|GS|G1|GD|PP|BM|LP|BP|PI|cstart|begin|TH...|pause|tbl|gr|pt|keep|post\.)|^\.P$' |
+sort -u |
+awk -v files="$files" -v opt="$opt" -v postopt="$postopt" '
+/\$LIST/ { e++ }
+/^\.PP/	{ ms++ }
+/^\.LP/	{ ms++ }
+/^\.EQ/	{ eqn++ }
+/^\.TS/	{ tbl++ }
+/^\.PS/	{ pic++ }
+/^\.TPS/ { tpic++; pic++ }
+/^\.IS/	{ ideal++ }
+/^\.GS/ { tped++ }
+/^\.G1/ { grap++; pic++ }
+/^\.GD/ { dag++; pic++ }
+/^\.\[/	{ refer++ }
+/\|reference/ { prefer++ }
+/^\.cstart/ { chem++; pic++ }
+/^\.begin +dformat/ { dformat++; pic++ }
+/^\.TH.../ { man++ }
+/^\.BM/ { lbits++ }
+/^\.P$/	{ mm++ }
+/^\.BP/	{ pictures++ }
+/^\.PI/	{ pictures++ }
+/^\.ft *Jp|\\f\(Jp/ { nihongo++ }
+/^\.so/ { soin++ }		# E55 CUSTOM
+/^\.font/ { font++ }	# E55 CUSTOM
+/^\.lang/ { lang++;langmac=$2 }	# E55 CUSTOM
+/^\.post\./ { mpost++ }		# E55 CUSTOM
+/^\.tbl/ { mtbl++ }		# E55 CUSTOM
+/^\.gr/ { mgr++ }		# E55 CUSTOM
+/^\.pt/ { mpt++ }		# E55 CUSTOM
+/^\.keep/ { mkeep++ }		# E55 CUSTOM
+/^\.pause$/ { pause++ }		# E55 CUSTOM
+/^\.lib eqn$/ { files = "'"$HOME/src/neatroff/lib/eqn "'" files }
+/^\.lib color$/ { color++ }	# E55 CUSTOM
+END {
+	if (soin) { x = "soin " files " | "; files = "" } # E55 CUSTOM
+	if (refer) {
+		if (e)	x = x "refer -e " files " | " # E55 CUSTOM
+		else	x =  x "refer " files "| " # E55 CUSTOM
+		files = ""
+	}
+	else if (prefer) { x = "cat " files "| '$prefer'| "; files = "" }
+	if (tpic) { x = x "timepic " files " | "; files = "" }
+	if (tped)  { x = x "tped " files " | "; files = "" }
+	if (dag)  { x = x "dag " files " | "; files = "" }
+	if (ideal) { x = x "ideal -q " files " | "; files = "" }
+	if (grap)  { x = x "grap " files " | "; files = "" }
+	if (chem)  { x = x "chem " files " | "; files = "" }
+	if (dformat)  { x = x "dformat " files " | "; files = "" }
+	if (pic)   { x = x "pic " files " | "; files = "" }
+	if (tbl)   { x = x "tbl " files " | "; files = "" }
+	if (eqn)   { x = x "'$eqn' -c'"'"'^~\"	(),'"'"' " files " | "; files = "" }
+	if (color) { x = x "trcolor " files " | "; files = "" }
+	x = x "'$troff' "
+	if (man) x = x "-man"
+	# else if (ms) x = x "-mrnd"
+	else if (ms) x = x "-msh"
+	else if (mm) x = x "-mm"
+	# else         x = x "-mrnd"
+	else         x = x "-msh"
+	if (lbits) x = x " -mbits"
+	if (pictures) x = x " -mspictures"
+	if (nihongo) x = x " -mnihongo"
+	if (pipe)    x = x " -mpipe"
+	if (font || eqn)   x = x " -mfont"
+	if (lang)    x = x " -mlang." langmac
+	if (mpost)   x = x " -mpost"
+	if (mtbl)    x = x " -mtbl"
+	if (mgr)     x = x " -mgr"
+	if (mpt)     x = x " -mpt"
+	if (mkeep)   x = x " -mkeep"
+	if (pause)   x = x " -mpause"
+	x = x " -mpapersize"
+	x = x " " opt " '$dev' " files
+	if (pause)   x = x " | roffpause"
+	# x = x " | pdf " postopt
+	x = x " | post " postopt
+	ps2pdf = "ps2pdf -dPDFSETTINGS=/prepress -dEmbedAllFonts=true -sFONTPATH=/home/e55/src/neatroff/fonts/ -sFONTMAP=/home/e55/src/neatroff/fonts/Fontmap - -"
+	x = x " | " ps2pdf
+	print x
+}' | $shell
