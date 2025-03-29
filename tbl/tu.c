@@ -137,12 +137,9 @@ drawline(int i, int cl, int cr, int lintype, int noheight, int shortl)
 			fprintf(tabout, "\\l'|\\n(%2su'", reg(cr, CRIGHT));
 		else
 		 {
-			/* lnch = "\\(ul"; */
-			/* if (pr1403) */
-				/* lnch = lintype == 2 ? "=" : "\\(ru"; */
-			lnch = "";
+			lnch = "\\(ul";
 			if (pr1403)
-				lnch = lintype == 2 ? "=" : "";
+				lnch = lintype == 2 ? "=" : "\\(ru";
 			if (cr + 1 >= ncol)
 				fprintf(tabout, "\\l'|\\n(TWu%s%s'", exhr, lnch);
 			else

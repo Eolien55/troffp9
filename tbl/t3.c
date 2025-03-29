@@ -40,8 +40,7 @@ getcomm(void)
 		*(lp->optadd) = 0;
 	texname = texstr[texct=0];
 	tab = '\t';
-	/* fprintf(tabout, ".nr %d \\n(.s\n", LSIZE); */
-	fprintf(tabout, ".nr %d 0\n", LSIZE);
+	fprintf(tabout, ".nr %d \\n(.s\n", LSIZE);
 	fprintf(tabout, ".af %d 01\n", LSIZE);
 	gets1(line, sizeof(line));
 	/* see if this is a command line */
