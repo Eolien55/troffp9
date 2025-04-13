@@ -24,7 +24,7 @@ char *getcolor(const char *p)
 			break;
 		}
 		p--;
-		return p;
+		return (char *)p;
 	}
-	return p;
+	return (char *)p;
 }

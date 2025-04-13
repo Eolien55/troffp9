@@ -9,14 +9,14 @@ maknew(char *str)
 	char	*p, *q, *ba, *dpoint;
 
 	p = str;
-	for (ba = 0; c = *str; str++)
+	for (ba = 0; (c = *str); str++)
 		if (c == '\\' && *(str + 1) == '&')
 			ba = str;
 	str = p;
 	if (ba == 0) {
 		for (dpoint = 0; *str; str++) {
-			if (*str == '.' && !ineqn(str, p) && 
-			    (str > p && digit(*(str - 1)) || 
+			if (*str == '.' && !ineqn(str, p) &&
+			    ((str > p && digit(*(str - 1))) ||
 			    digit(*(str + 1))))
 				dpoint = str;
 		}
